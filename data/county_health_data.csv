@@ -1,0 +1,13 @@
+county,region,adult_population,asthma_visits,vaccination_rate,asthma_visit_rate
+Asael County,North,40000,310,0.824,775
+Iva County,North,120000,820,0.761,683.3
+Beauty County,North,85000,540,0.895,635.3
+Lantern County,North,32000,210,0.642,656.2
+Dane County,Central,210000,1450,0.881,690.5
+Clover County,Central,65000,480,0.715,738.5
+Ziven County,Central,95000,610,0.793,642.1
+Cross County,Central,150000,1100,0.854,733.3
+Fur County,South,55000,390,0.612,709.1
+Famous County,South,78000,520,0.748,666.7
+Han County,South,110000,790,0.805,718.2
+Cookieville County,South,240000,1350,0.913,562.5

@@ -1,0 +1,445 @@
+---
+title: "Lab 1: Reproducible Data Visualization Workflow"
+author: "Oluwadamilare Adekunle"
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    code-tools: true
+execute:
+  warning: false
+  message: false
+  echo: false      # This hides all code chunks
+editor: visual
+---
+
+# Part 3: Load the following packages
+
+```{r}
+# After the project and the lab document were completed, the next step is this part. 
+
+library(tidyverse)   # Data manipulation and ggplot2 for visualization
+library(fs)          # File system tools (creating or listing directories)
+library(here)        # Reproducible and safe paths (relative) from project root
+
+# The package "here" had to be installed in a previous quatro document. "Tidyverse" and "fs" were installed previously.
+
+# The package "here" finds the project's main folder (root directory) and sets it as a starting point for all the file paths. It stops path errors when one move scripts or share code. 
+```
+
+# Part 4: Confirm the Project Root
+
+```{r}
+#| label: confirm-project-root
+#| echo: false
+
+here()
+
+# What this does is print the root directory that R project and the here package believes as the main office or home base for all the file paths.  
+
+# A problem occurred in part 7, which I thought was due to part 5 and 6. However, with help, it was discovered that the location of my folders had to be changed to Desktop. It was originally saved within (another folder in) OneDrive which continued blocking RStudio from writing files, or so it seemed. 
+```
+
+Answer:
+
+1.  What path was printed?
+2.  Does it point to the correct course project?
+3.  Why is working from an R Project preferable to manually setting the working directory?
+
+**Response:**
+
+1.  The path printed was "C:/Users/damil/OneDrive/Desktop/data-visualization-course"
+
+2.  Yes, it points to the correct course project, data visualization course
+
+3. What working from an R Project does is that it creates a sort of environment that can be be considered independent and on any device. The project root is used automatically. 
+
+# Part 5: Create the Folder Structure
+
+```{r}
+#| label: create-folder-structure
+#| echo: false
+
+# Character vector of the 7 folder names
+
+folders <- c(
+  "data",
+  "figures",
+  "scripts",
+  "tables",
+  "assignments",
+  "labs",
+  "portfolio"
+)
+
+# Now to create all folders using a tidy workflow with the fs package
+
+fs::dir_create(here::here(folders))
+
+# Originally Part 5 and part 6 were changed to comments to avoid the folders from being created within the Labs folder. It is also because the folders have been created previously within the appropriate parent folder - Data Visualization. In addition, the folders which were created as a result of running the code chunk were intended to be deleted. 
+
+# New changes includes removing any previously created project, included those connected to GitHub as repositories and start again by only creating data-visualization-course without any subfolder
+
+# Ctrl + Shift + c made it possible for every line to instantly get a # to the front. Pressing the same keys undo them.
+```
+
+# Part 6: Inspect the Folder Structure
+
+```{r}
+#| label: inspect-folder-structure
+# #| eval: false
+#| echo: false
+
+# The top-level contents of the project directory listed
+
+fs::dir_ls(here::here())
+
+# Now, in order to keep the code looking normal but at the same time tell Quatro to completely the entire chunk when running or rendering, #| eval: false and #| echo: false should be added to the top of the chunk. eval: false tells R not to execute the code. echo: false hides the code from showing up in the final rendered HTML document
+
+# eval:false was later commented out because of the another decision made. Part 5 comment has the explanation. 
+```
+
+# Part 7: Create a Simulated Public Health Dataset
+
+```{r}
+#| label: create-simulated-health-data
+#| echo: false
+
+# Set seed (for reproducibility, including the manual data)
+
+set.seed(716)
+
+# 12 fictional counties, regions, and raw values defined manually
+
+county_health_data <- tibble(
+  county = c(
+    "Asael County", "Iva County", "Beauty County", "Lantern County",  # North
+    "Dane County", "Clover County", "Ziven County", "Cross County",   # Central
+    "Fur County", "Famous County", "Han County", "Cookieville County"    # South
+  ),
+  region = c(
+    "North", "North", "North", "North",
+    "Central", "Central", "Central", "Central",
+    "South", "South",
+    "South", "South"
+  ),
+  adult_population = c(
+    40000, 120000, 85000, 32000,  # North popu.
+    210000, 65000, 95000, 150000,   # Central popu.
+    55000, 78000, 110000, 240000   # South popu. 
+  ),
+  asthma_visits = c(
+    310, 820, 540, 210,  # North visits
+    1450, 480, 610, 1100,  # Central visits
+    390, 520, 790, 1350    # South visits
+  ),
+  vaccination_rate = c(
+    0.824, 0.761, 0.895, 0.642,   # North rates
+    0.881, 0.715, 0.793, 0.854,   # Central rates
+    0.612, 0.748, 0.805, 0.913   # South rates
+  )
+) %>%
+  mutate(
+    # in order to calculate the asthma visit rate per 100,000
+    asthma_visit_rate = round((asthma_visits / adult_population) * 100000, 1)
+  )
+
+# Completed dataset displayed 
+
+county_health_data
+
+```
+
+# Part 8: Save the Dataset
+
+```{r}
+#| label: save-simulated-health-data
+#| echo: false
+
+# This saves the dataset as a CSV to the data folder. This would be reproducible due to the steps
+
+write_csv(
+  county_health_data,
+  here::here("data", "county_health_data.csv")
+)
+
+```
+
+# Part 9: Remove and Re-Import the Dataset
+
+```{r}
+#| label: remove-health-data
+#| echo: false
+
+# This removes the object from the active environment
+
+rm(county_health_data)
+```
+
+```{r}
+#| label: import-health-data
+#| echo: false
+
+# This re-imports the CSV file 
+
+county_health_data <- read_csv(
+  here::here("data", "county_health_data.csv")
+)
+```
+
+# Part 10: Inspect the Data
+
+```{r}
+#| label: inspect-health-data
+#| echo: false
+
+# This checks data structure and variable types
+
+glimpse(county_health_data)
+
+```
+
+```{r}
+#| label: summarize-health-data
+#| echo: false
+
+# This creates a one-row summary
+
+county_health_data %>%
+  summarize(
+    total_counties = n_distinct(county),
+    mean_vaccination = mean(vaccination_rate),
+    median_asthma_rate = median(asthma_visit_rate)
+  )
+```
+
+Answer:
+
+1. What does one row represent?
+2. How many variables are included?
+3. Which variables are categorical?
+4. Which variables are numeric?
+5. Which variable should be used to compare asthma burden fairly across counties?
+
+**Response:**
+
+1. One row represent an individual (fictional) county.
+
+2. There are `r ncol(county_health_data)` variables included in the dataset. 
+
+3. The categorical variables are `r county_health_data %>% select(where(is.character)) %>% colnames() %>% paste(collapse = " and ")`.
+
+4. The numeric variables are `r county_health_data %>% select(where(is.numeric)) %>% colnames() %>% paste(collapse = ", ")`.
+
+5. The `r colnames(county_health_data)[6]` variable should be used because it controls for population differences between counties by calculating visits per 100,000 residents. 
+
+# Part 11: Create a Ranked Vaccination Bar Chart
+
+```{r}
+#| label: create-vaccination-plot
+#| fig-cap: "Stimulated vaccination coverage by county."
+#| fig-alt: "Horizontal bar chart ranking fictional counties by simulated vaccination coverage."
+#| fig-width: 9
+#| fig-height: 7
+#| echo: false
+
+# This reorder counties by vaccination rate and create a horizontal bar chart
+
+vaccination_plot <- county_health_data %>%
+  mutate(
+    county = fct_reorder(county, vaccination_rate)
+  ) %>%
+  ggplot(
+    aes(
+      x = county, 
+      y = vaccination_rate
+    )
+  ) + 
+  geom_col(fill = "#009E73") +   # scientific standard for a colorblind-safe color (Wong), Bluish Green (from the Okabe-Ito Palette)
+  geom_hline(
+    yintercept = 0.80,
+    linetype = "dashed",
+    color = "gray40"
+  ) + 
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  labs(
+    title = "Simulated Vaccination Coverage by County",
+    subtitle = "Horizontal ranking with 80% target reference line",
+    x = "County",
+    y = "Vaccination Coverage",
+    caption = "Data are simulated not for real-life use, only instructional use or teaching."
+  ) +
+  theme_minimal(base_size = 12)
+
+# This prints the plot so it renders in the Quatro document
+
+vaccination_plot
+```
+
+# Part 12: Interpret the Figure
+
+Answer in two or three complete sentences.
+
+1. What pattern does the figure show?
+2. Which counties appear furthest below the target?
+3. What context would be required before using this graph for a real decision?
+
+**Responses:**
+
+The figure shows simulated vaccination coverage across 12 (fictional) counties (from lowest to highest), revealing counties that are  above or below the the 80% reference line. To illustrate, Lantern County and Fur County appear to fall furthest below the target of 80%, which may be due to lack of cultural appropriate communication, personal beliefs, or gaps in vaccination uptake. Before using this graph to make decisions that are real, one would need more information regarding the quality of the data, the interpretations from the estimates, the evaluations focusing on access to available resources, and the demographic characteristics (including assessments on the knowlegde, attitude, and beliefs of the population) or target audience.  
+
+# Part 13: Save the Vaccination Figure
+
+```{r}
+#| label: save-vaccination-plot
+#| echo: false
+
+# This saves the plot with specific dimensions and resolution including where it is placed into
+
+ggsave(
+  filename = here::here(
+    "figures", "lab01_vaccination_coverage.png"
+    ),
+  plot = vaccination_plot,
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+```
+
+# Part 14: Independent Visualization
+
+```{r}
+#| label: independent-visualization
+#| fig-cap: "Independent visualization analyzing adult population and total asthma visits created by the student."
+#| fig-alt: "Scatterplot showing a positive relationship between adult population size and total emergency asthma visits across regions."
+#| fig-width: 10
+#| fig-height: 8
+#| echo: false
+
+# This creates a scatterplot that explores population vs. asthma burden
+
+independent_plot <- county_health_data %>%
+  ggplot(
+    aes(
+      x = adult_population,
+      y = asthma_visits
+    )) +    
+  # Points that are colored by region using a colorblind-friendly design 
+  geom_point(
+    aes(
+      color = region
+    ), 
+    size = 3.5, 
+    alpha = 0.8
+  ) +    
+  # This is a dashed trend line which shows direction with no overbearing layout
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    color = "midnightblue",
+    linetype = "twodash",
+    size = 1
+  ) + 
+  # This is a built-in colorblind palette from scale_color_brewer (Set2 is appropriate)
+  scale_color_brewer(palette = "Set2") +
+  # This adds comma formatting to large pop. numbers on the x-axis (readable with this)
+  scale_x_continuous(labels = scales::comma_format()) + 
+  labs(
+    title = "Adult Population Size vs. Total Emergency Asthma Visits",
+    subtitle = "Exploratory relationship analysis tracking volume across regions",
+    x = "Adult Population Size (Count)",
+    y = "Total Emergency Asthma Visits (Count)",
+    color = "Geographic Region",
+    caption = "Data are simulated not for real-life use."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold")
+  )
+
+# This prints the plot
+
+independent_plot 
+```
+
+# Part 15: Save the Independent Figure
+
+```{r}
+#| label: save-independent-visualization
+#| echo: false
+
+# This saves the independent visualization as a PNG in the 'figures/' folder.
+
+ggsave(
+  filename = here::here(
+    "figures", "labs01_independent_visualization.png"
+    ),
+  plot = independent_plot,
+  width = 8, 
+  height = 5, 
+  dpi = 300
+)
+```
+
+# Part 16: Tidy Coding (Hidden) Checks
+
+```{r}
+#| label: guide-for-review
+#| echo: false
+
+# Review all codes written previously and confirm:
+#   
+#   `%>%` is used instead of the native pipe
+#   one major function appears per line
+#   arguments are indented consistently
+#   object names are descriptive
+#   no `setwd()` appears
+#   no absolute file paths appear
+#   code chunks have labels
+```
+
+# Part 17: Git and GitHub
+
+```{r}
+# #| label: git-and-github
+# #| echo: false
+# 
+# # Complete the following:
+# 
+# 1. Open the Git pane. 
+# 2. Review the changed files
+# 3. Stage the files associated with this lab
+# 4  Commit using a meaningful message
+# 5.  Push to GitHub
+# 6 Open the repository online and verify that the files appear
+
+# this instruction can be followed depending on one's steps and their efforts to connect RStudio with Github. 
+```
+
+# Reflection Questions
+
+Answer each question in complete answer.
+
+1. Why is reproducibility important in public health research and practice?
+
+Reproducibility is important because it shows that whatever data (i.e, research, interventiokns) has been derived can be replicated, thereby reducing the possibility of errors occurring. 
+
+2. How does a consistent project stucture improve collaboration and review?
+
+A consistent project structure improve collaboration and review by making sure data can be readily found instead of sifting through other previously, saved folders or files.It makes reviewing and collaboration easier.
+
+3. Why are relative paths preferable to absolute paths
+
+Relative paths (due to them being tied to project roots), makes it possible for one to work across different computers. Whereas, absolute paths would make the goal of achieving reproducibility nearly difficult or impossible. 
+
+4.  How does GitgHub contribute to reproducibility:
+
+GitHub help contribute to reproducibility by keeping track of changes and as well as allow others to successfully reproduce or see what one individual did. 
+
+5.  What was the most challenging part of the lab?
+
+The most challenging part of the lab was the structure of the instruction or guide, especially if one does not pay careful attention to what the next steps should be (or how to work around it).
