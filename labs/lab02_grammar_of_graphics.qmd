@@ -1,0 +1,407 @@
+---
+title: "Lab 2: Applying the Grammar of Graphics"
+subtitle: "Inspired from Chapter 2 by Dr. Anny Rodriguez, PhD, MPH"
+author: "Oluwadamilare Adekunle"
+format: 
+  html: 
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    code-tools: true
+execute:
+  echo: false   # helps hide all code by default from the final product globally
+  eval: true    # helps run code
+  warning: false
+  message: false
+editor: visual
+---
+
+# Learning Objectives
+
+To apply the Grammar of Graphics to several public health questions.
+
+# Setup
+
+Load `tidyverse` and `gapminder`.
+
+```{r}
+#| label: load-packages
+
+# Loading core packages for data manipulation and visualizations, including paths for figures
+
+library(tidyverse) # dplyr, ggplot2, etc.
+library(gapminder) # gapminder dataset contains repeated observations for countries over time
+library(here)    # helps with file paths for saving figures
+```
+
+# Part 1: Prepare the Data
+
+Creating `gapminder_2007` by filtering to 2007 and renaming `lifeExp`, `gdpPercap`, and `pop` to descriptive names.
+
+```{r}
+#| label: prepare-data
+
+# Filtering to year 2007 and renaming varaibles mentioned earlier
+
+gapminder_2007 <- gapminder %>%
+  filter(year == 2007) %>%   # Keeps only 2007 observations
+  rename(
+    life_expectancy = lifeExp, # life expectancy in years
+    gdp_per_capita = gdpPercap, # GDP per capita (USD)
+    population = pop   # total population
+  )
+
+glimpse(gapminder_2007)  # prints summary of the gapminder_2007 data frame, demonstrating columns, data types, and rows
+```
+
+# Part 2: Scatterplot (GDP vs life expectancy)
+
+Creating a scatterplot of GDP per capita and life expectancy. Using a logarithmic x-axis, map continent to color, using an accessible palette, and including complete labels.
+
+```{r}
+#| label: scatterplot
+#| fig-cap: "GDP per capita and life expectancy in 2007."
+#| fig-alt: "Scatterplot showing the relationship between GDP per capita and life expectancy across countries in 2007, colored by continent."
+#| fig-width: 9
+#| fig-height: 7
+
+# Scatterplot of GDP per capita vs life expectancy with continent mapped to color
+
+scatterplot_2007 <- gapminder_2007 %>%
+  ggplot(
+    aes(
+      x = gdp_per_capita,
+      y = life_expectancy,
+      color = continent  # colors by continent
+    )
+  )+ 
+  geom_point(
+    size = 3,   # works on increasing points
+    alpha = 0.8  # works on adjusting transparency
+  ) +
+  scale_x_log10(
+    labels = scales::label_dollar()  # log scale with dolar formatting
+  ) +
+  scale_color_brewer(
+    palette = "Set2"  # colorblind-friendly palette (Set2)
+  ) +
+  labs(
+    title = "Life Expectancy and GDP per Capita in 2007",
+    subtitle = "Country-level observations colored by continent",
+    x = "GDP per capita (log scale, US dollars)",
+    y = "Life expectancy (years)",
+    color = "Continent",
+    caption = "Gapminder dataset as the source"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold")
+  )
+
+# Printing the plot so it renders in the output
+scatterplot_2007
+```
+
+```{r}
+#| label: save-scatterplot
+# It is not necessary to do but one can do so if one wants to save the figure to an already existing folder.
+# The library(here) should have been installed or loaded earlier for this to work.
+
+# Saving the scatterplot with specific dimensions and resolution
+
+ggsave(
+  filename = here::here("figures", "lab02_scatterplot_gdp_lifeexp.png"),
+  plot = scatterplot_2007,
+  width = 8,
+  height = 6, 
+  dpi = 300
+)
+```
+
+
+# Part 3: Ranked Bar Chart
+
+Calculating mean life expectancy by continent and creating a ranked horizontal bar chart.
+
+```{r}
+#| label: bar-chart
+#| fig-cap: "Mean life expectancy by continent in 2007."
+#| fig-alt: "Horizontal bar chart showing mean life expectancy for each continent in 2007."
+#| fig-width: 8
+#| fig-height: 6
+
+# Calculating mean life expectancy by continent
+
+continent_summary_2007 <- gapminder_2007 %>%
+  group_by(continent) %>%
+  summarize(
+    mean_life_expectancy = mean(life_expectancy, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Create a ranked horizontal bar chart
+
+bar_chart_2007 <- continent_summary_2007 %>%
+  mutate(
+    continent = fct_reorder(continent, mean_life_expectancy)  # reorder by mean life expectancy
+  ) %>%
+  ggplot(
+    aes(
+      x = continent,
+      y= mean_life_expectancy
+    )
+  ) + 
+  geom_col(
+    fill = "#E69F00" # Okabe-Ito Orange (colorblind-safe)
+  ) + 
+  coord_flip() +
+  labs(
+    title = "Mean Life Expectancy by Continent (2007)",
+    subtitle = "Ranked horizontally to help make comparing easy",
+    x = "Continent",
+    y = "Mean life expectancy (years)",
+    caption = "Using the Gapminder dataset as a source"
+  ) +
+  theme_minimal(base_size = 12)
+
+bar_chart_2007
+```
+
+The ranked bar chart summarizes `r nrow(continent_summary_2007)` continents.
+
+```{r}
+# Saving the bar chart
+
+#| label: save-bar-chart
+
+ggsave(
+  filename = here::here("figures", "lab02_mean_lifeexp_by_continent.png"),
+  plot = bar_chart_2007,
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+```
+
+
+# Part 4: Distribution
+
+Creating a boxplot comparing life expectancy across continents.
+
+```{r}
+#| label: boxplot
+#| fig-cap: "Distribution of life expectancy by continent in 2007."
+#| fig-alt: "Boxplot comparing the distribution of life expectancy across continents in 2007."
+#| fig-width: 8
+#| fig-height: 6
+
+# Boxplot comparing life expectancy distribution across continents
+
+boxplot_2007 <- gapminder_2007 %>%
+  ggplot(
+    aes(
+      x = continent,
+      y = life_expectancy,
+      fill = continent  # mapping continent to fill for visual grouping
+    )
+  ) + 
+  geom_boxplot(alpha = 0.8) + 
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Distribution of Life Expectancy by Continent (2007)",
+    subtitle = "Boxplots showing median and spread across continents",
+    x = "Continent",
+    y = "Life expectancy (years)",
+    fill = "Continent",
+    caption = "Sources from Gapminder dataset"
+  ) + 
+  theme_minimal(base_size = 12) + 
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold")
+  )
+
+boxplot_2007
+```
+
+```{r}
+#| label: save-boxplot
+
+# Saving the boxplot
+
+ggsave(
+  filename = here::here("figures", "lab02_boxplot_lifeexp_by_continent.png"),
+  plot = boxplot_2007,
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+```
+
+
+# Part 5: Faceting
+
+Creating a faceted scatterplot showing the GDP–life expectancy relationship separately by continent.
+
+```{r}
+#| label: faceted-scatterplot
+#| fig-cap: "GDP per capita and life expectancy by continent in 2007."
+#| fig-alt: "Faceted scatterplot showing the relationship between GDP per capita and life expectancy separately for each continent."
+#| fig-width: 14
+#| fig-height: 8
+
+# Faceted scatterplot showing GDP-life expectancy relationship by continent
+
+faceted_scatterplot_2007 <- gapminder_2007 %>%
+  ggplot(
+    aes(
+      x = gdp_per_capita,
+      y = life_expectancy
+    )
+  ) + 
+  geom_point(
+    aes(color = continent),
+    size = 2.5, 
+    alpha = 0.8
+  ) + 
+  scale_x_log10(
+    labels = scales::label_dollar()
+  ) +
+  scale_color_brewer(palette = "Set2") + 
+  facet_wrap(vars(continent)) +
+  labs(
+    title = "GDP per Capita and Life Expectancy by Continent (2007)",
+    subtitle = "Faceted scatterplots to support within-continent comparisons",
+    x = "GDP per capita (log scale, US dollars",
+    y = "Life expectancy (years)",
+    color = "Continent",
+    caption = "From the Gapminder dataset"
+  ) + 
+  theme_minimal(base_size = 11) + 
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold")
+  )
+
+faceted_scatterplot_2007
+```
+
+```{r}
+#| label: save-faceted-scatterplot
+
+# code chunk to save the faceted scatteplot
+
+ggsave(
+  filename = here::here("figures", "lab02_faceted_scatterplot_gdp_lifeexp.png"),
+  plot = faceted_scatterplot_2007,
+  width = 14,
+  height = 8, 
+  dpi = 300
+)
+```
+
+
+# Part 6: Identify the Grammar
+
+Identifying the data, aesthetics, geometry, scales, labels, facets, and theme for one graph.
+
+**Response:**  
+
+For the scatterplot `scatterplot_2007`, the data are the `gapminder_2007` observations, where each row represents a country in 2007. The aesthetic mappings assign GDP per capita to the x-axis (`x = gdp_per_capita`), life expectancy to the y-axis (`y = life_expectancy`), and continent to color (`color = continent`). Furthermore, the geometry is `geom_point()`, which displays each country as a point. The scales also use a logarithmic x-axis (`scale_x_log10()`) and a color scale using the Set2 palette (`scale_color_brewer(palette = "Set2")`) The labels are set through labs() to show a title, subtitle, axis labels, and caption. There are also no facets for part 2 graph, and the theme is `theme_minimal(base_size = 12)` with a bold plot title and the legend positioned at the bottom.   
+
+# Part 7: Independent Visualization
+
+Creating one additional chart that answers a public health question. Stating the question, justifying the chart, using an informative title, and adding alt text.
+
+**Question:** How does population size related to life expectancy across continents in 2007?
+
+```{r}
+#| label: independent-chart
+#| fig-cap: "Population size and life expectancy by continent in 2007."
+#| fig-alt: "Scatterplot illustrating the relationship between population size and life expectancy across countries in 2007, along with points colored by continent."
+#| fig-width: 12
+#| fig-height: 8
+
+# Independent visualization exploring population size vs life expectancy
+
+independent_plot_2007 <- gapminder_2007 %>%
+  ggplot(
+    aes(
+      x = population,
+      y = life_expectancy
+    )
+  ) +
+  geom_point(
+    aes(color = continent),
+    size = 3,
+    alpha = 0.8
+  ) + 
+  scale_x_log10(
+    labels = scales::comma_format()  # comma formatting for help with large populations
+  ) +
+  scale_color_brewer(palette = "Set2") + 
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    color = "royalblue",  # other colors can be cadetblue, darkslateblue, gray30, and steelblue
+    linetype = "twodash",  # other options are dotdash, dashed, dotted, solid, dotted, and longdash
+    linewidth = 1  # this was changed from size = 1 to linewidth = 1 because using size which is still okay to use for points (geom_point()), triggered the lifecycle warning in the console pane
+  ) +
+  labs(
+    title = "Population Size and Life Expectancy Across Countries (2007)",
+    subtitle = "Exploratory analysis of population size and life expectancy by continent",
+    x = "Population size (log scale)",
+    y = "Life expectancy (years)",
+    color = "Continent",
+    caption = "In 2007, countries with larger populaations illustrated changes in life expectancy, though the trend demonstrates a modest positive relationship."
+  ) + 
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom", # this can be in any position (bottom, left, top, and even coordinates (e.g., c(0.65, 0.15)))
+    legend.background = element_rect(fill = "white", color = "gray80"),
+    plot.title = element_text(face = "bold")
+  )
+
+independent_plot_2007
+
+# there was a big difference made to the graph when using scale_x_continuous(labels = scales::comma_format()) and when using scale_x_log10(labels = scales::comma_format()). The graph looks less congested and easier to read when using scale_x_log10
+```
+
+This visualization uses a scatterplot because the question examines the relationship between two numeric variables (population size and life expectancy), and scatterplots are suitable when analyzing how one continuous measure corresponds to another. For an interpretation layer that shows how countries cluster within their regional conditions, mapping content to color (`color = continent`) was carried out. And to reduce congestion from large population values, a logarithmic scale to the x-axis was applied, making the spread of countries easier to interpret compared to the continuous scale. The inclusion of a linear trend line (`geom_smooth(method = "lm")`) provides an overview of the association, depicting a positive relationship (although not so distinct; a bit modest) between population size and life expectancy. 
+
+```{r}
+#| label: save-independent-chart
+
+# saving the fifth figure
+
+ggsave(
+  filename = here::here("figures", "lab02_independent_population_lifeexp.png"),
+  plot = independent_plot_2007,
+  width = 12,
+  height = 8,
+  dpi = 300
+)
+```
+
+
+# Reflection
+
+1. Which aesthetic mappings changed the meaning of the graph?
+2. When did faceting improve interpretation?
+3. Which graph most clearly communicated one finding?
+
+**Response:**  
+
+1. The use or mapping of `color = continent` and `fill = continent` changes the meaning of the graph. `color = continent` changed the meaning by revealing regional patterns that would be hidden if all points were the same color, while `fill = continent` made group differences in the distribution of life expectancy striking. 
+
+2. Faceting by continent in  `faceted_scatterplot_2007` improved interpretation by permitting within-continent comparisons without making points overlap from other regions. This showed that some continents have clusters that are tightly knitted than others and GDP-life expectancy relationships that are different.
+
+3. The ranked horizontal bar chart `bar_chart_2007` most clearly communicated the finding that `r continent_summary_2007$continent[which.max(continent_summary_2007$mean_life_expectancy)]` had the highest mean life expectancy in 2007. 
+
+```{r}
+# Deliverables:
+
+# Submit the completed QMD, rendered HTML, five visualizations, reflections, and Git commit.
+```
+
