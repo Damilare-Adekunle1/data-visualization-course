@@ -1,0 +1,433 @@
+---
+title: "Lab 3: Data Wrangling for Visualization"
+subtitle: "Inspired from Chapter 3 by Dr. Anny Rodriguez, PhD, MPH"
+author: "Oluwadamilare Adekunle"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    code-tools: true
+execute:
+  echo: false   # helps hide all code by default from the final product globally
+  eval: true  # helps run code
+  warning: false
+  message: false
+editor: visual
+---
+
+# Learning Objectives
+
+One will clean, reshape, summarize, and join public health data before visualization.
+
+# Setup
+
+Load `tidyverse` and any other packages needed.
+
+```{r}
+#| label: load-packages
+
+library(ggplot2)
+library(tidyverse)
+library(here)
+
+```
+
+# Part 1: Create Raw Data
+
+Create `raw_health_data` with at least eight counties, region, 2023 and 2024 population and case columns, one duplicate county, and one missing value.
+
+```{r}
+#| label: raw-data
+
+# Creating a raw ph dataset
+# It would be one with a wide format (separating columns for 2023 and 2024)
+# There would be one duplicate county
+# There would be one missing value in cases
+
+raw_health_data <- tibble(
+  county = c(
+    "Asael County", "Iva County", "Beauty County", "Lantern County",
+    "Dane County", "Clover County", "Ziven County", "Cross County",
+    "Asael County" #  The duplicate county
+  ),
+  region = c(
+    "North", "North", "North", "North",
+    "Central", "Central", "Central", "Central",
+    "North"  # Same region (Asael County)
+  ),
+  population_2023 = c(
+    4000, 120000, 85000, 32000,
+    210000, 65000, 95000, 150000, 
+    40000  # duplicated population (for Asael County)
+  ),
+    population_2024 = c(
+    41000, 121500, 87000, 33000,
+    215000, 67000, 98000, 152000,
+    41000 
+),
+cases_2023 = c(
+      310, 820, 540, 210,
+    1450, 480, 610, 1100,
+    NA     # Missing value for duplicate Asael County
+
+),
+cases_2024 = c(
+      325, 840, 560, 220,
+    1500, 500, 640, 1150,
+    330
+)
+)
+
+# In real-life, there are issues such as missing values and duplicates which have to be cleaned before they are visualized
+```
+
+The raw dataset raw_health_data contains `r nrow(raw_health_data)` rows and `r ncol(raw_health_data)` variables, including one duplicate county and a missing value in cases_2023. 
+
+# Part 2: Diagnose
+
+Use `glimpse()`, duplicate checks, and missing-value summaries.
+
+```{r}
+#| label: diagnose-data
+
+# Inspecting types and structure
+raw_health_data_glimpse <- raw_health_data %>%
+  glimpse()
+
+# Checking for duplicate counties
+duplicate_counties <- raw_health_data %>%
+  count(county) %>%
+  filter(n > 1)
+
+# Summarize missing values by variable
+missing_summary <- raw_health_data %>%
+  summarize(
+    missing_population_2023 = sum(is.na(population_2023)),
+    missing_population_2024 = sum(is.na(population_2024)),
+    missing_cases_2023      = sum(is.na(cases_2023)),
+    missing_cases_2024      = sum(is.na(cases_2024))
+  )
+
+# `glimpse()` helps confirm data types and structure
+# `count(county)` identifies duplicate counties that could cause row multiplication during joins. 
+# `summarize()` with `is.na()` helps with quantifying missing values that may affect rate calculations. 
+```
+
+So, the 
+  - duplicate counties are `r duplicate_counties %>% pull(county) %>% paste(collapse = ", ")`
+  - while the missing values are `r missing_summary$missing_cases_2023` missing values in cases_2023.
+
+# Part 3: Remove Duplicates
+
+Create `health_data_clean` with one row per county.
+
+```{r}
+#| label: remove-duplicates
+
+health_data_clean <- raw_health_data %>%
+  group_by(county) %>%
+  slice(1) %>%
+  ungroup()
+
+# What `group_by(county)` and `slice(1)` county does is that it makes sure one row per county. 
+# This prevents row multiplication that are unintended when joining or summarizing later.
+```
+
+After cleaning, `health_data_clean` contains `r nrow(health_data_clean)` counties with one row per county that are one-of-a-kind. 
+
+# Part 4: Reshape Long
+
+Create county, region, year, population, and cases columns.
+
+```{r}
+#| label: reshape-long
+
+# Reshaping from wide to long format so that year becomes a variable and population or cases are stored in separate columns. 
+
+health_data_long <- health_data_clean %>%
+  pivot_longer(
+    cols = c(population_2023, population_2024, cases_2023, cases_2024),
+    names_to = "measure_year",
+    values_to = "value"
+  ) %>%
+  separate(
+    col = measure_year,
+    into = c("measure", "year"),
+    sep = "_"
+  ) %>%
+  pivot_wider(
+    names_from = measure,
+    values_from = value
+  ) %>%
+  mutate(
+    year = as.integer(year)
+  )
+
+# `pivot_longer()` converts wide columns into rows.
+# `separate()` splits `measure_year` into `measure`(population or cases) and `year`.
+# `pivot_wider()` then creates `population` and `cases` columns, yielding one row per county-year.
+```
+
+The long dataset health_data_long now has `r nrow(health_data_long)` rows, with one row per county-year combination and variables that are separate for population and cases. 
+
+# Part 5: Calculate Rates
+
+Calculate cases per 100,000.
+
+```{r}
+#| label: calculate-rates
+
+# Calculating cases per 100,000 adults for burden comparison across years and counties
+
+health_data_rates <- health_data_long %>%
+  mutate(
+    rate_per_100k = round((cases / population) * 100000, 1)
+  )
+
+```
+
+# Part 6: Summarize
+
+Calculate mean rate by region and year.
+
+```{r}
+#| label: summarize-region
+
+# Summarizing mean rate per 100,000 by region and year
+
+region_year_summary <- health_data_rates %>%
+  group_by(region, year) %>%
+  summarize(
+    mean_rate_per_100k = mean(rate_per_100k, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+```
+
+The summary dataset `region_year_summary` contains `r nrow(region_year_summary)` rows, each representing a region-year combination with a mean rate per 100,000.
+
+# Part 7: Join Contextual Data
+
+Create a county rural-status table and join it with `left_join()`. Check duplicates, unmatched rows, and row counts.
+
+```{r}
+#| label: join-data
+
+county_rural_status <- tibble(
+  county = c(
+    "Asael County", "Iva County", "Beauty County", "Lantern County",
+    "Dane County", "Clover County", "Ziven County", "Cross County"
+  ),
+  rural_status = c(
+    "Rural", "Urban", "Urban", "Rural",
+    "Urban", "Rural", "Urban", "Rural"
+  )
+)
+
+# The use of `left join to keep all rows from health_data_rates and add rural status
+
+health_data_with_rural <- health_data_rates %>%
+  left_join(
+    county_rural_status,
+    by = "county"
+  )
+
+# Checking for duplicate counties in the rural-status table
+rural_duplicates <- county_rural_status %>%
+  count(county) %>%
+  filter(n > 1)
+
+# Checking for unmatched rows (missing rural_status after join)
+unmatched_rural <- health_data_with_rural %>%
+  filter(is.na(rural_status))
+
+```
+
+# Part 8: Visualize
+
+Create a regional line graph, ranked 2024 county graph, and rural-status comparison.
+
+```{r}
+#| label: regional-line-graph-visualization
+#| fig-cap: "Mean cases per 100,000 by region and year."
+#| fig-alt: "Line graph showing mean cases per 100,000 across regions over time."
+#| fig-width: 10
+#| fig-height: 7
+
+regional_line_plot <- region_year_summary %>%
+  ggplot(
+    aes(
+      x = year,
+      y = mean_rate_per_100k,
+      color = region,
+      group = region
+    )
+  ) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 3) +
+  scale_color_brewer(palette = "Set2") +  # Colorblind-friendly palette
+  labs(
+    title = "Mean Cases per 100,000 by Region and Year",
+    subtitle = "County-level data for 2023–2024",
+    x = "Year",
+    y = "Mean cases per 100,000",
+    color = "Region",
+    caption = "Graph depicting mean rates change over time by region (Demonstrating purpose only)."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold")
+  )
+
+regional_line_plot
+
+```
+
+## Part 8b (Ranked 2024 County Graph)
+
+```{r}
+#| label: ranked-2024-counties
+#| fig-cap: "Cases per 100,000 by county in 2024."
+#| fig-alt: "Horizontal bar chart ranking counties by cases per 100,000 in 2024."
+#| fig-width: 9
+#| fig-height: 7
+
+county_2024 <- health_data_rates %>%
+  filter(year == 2024) %>%
+  mutate(
+    county = fct_reorder(county, rate_per_100k)
+  )
+
+ranked_2024_plot <- county_2024 %>%
+  ggplot(
+    aes(
+      x = county,
+      y = rate_per_100k,
+      fill = rate_per_100k  # map fill to numeric variable
+    )
+  ) +
+  geom_col() +
+  scale_fill_gradient(
+    low = "#4B0092",  # deep purple
+    high = "#D35FB7"  # Orchid/Muted Pink, good for mid-tone contrast for red-green blindness
+  ) + 
+  coord_flip() +
+  labs(
+    title = "Cases per 100,000 by County (2024)",
+    subtitle = "Horizontal ranking of (formed) counties",
+    x = "County",
+    y = "Cases per 100,000",
+    caption = "A demonstration of a horizontal bar chart ranks counties by standardized rates (Identification assistance)."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold")
+  )
+
+ranked_2024_plot
+
+# Other color options that can be used (with pink tones) are #CC79A7 (Reddish Purple), #D41159 (Dark Rose / Rose Pink), #4B0092 (Deep Purple), #E66100 (Vibrant Orange / Coral), and #1A85FF (Sky Blue). Other Salmon and earthy pink palette are #D55E00 (Deep Salmon / Vermillion), #E1BE6A (Warm Gold/Ochre), and #40B0A6 (Soft Teal). 
+```
+
+## Part 8c (Rural-Status Comparison)
+
+```{r}
+#| label: rural-status-comparison
+#| fig-cap: "Cases per 100,000 by rural status."
+#| fig-alt: "Boxplot comparing cases per 100,000 between rural and urban counties."
+#| fig-width: 9
+#| fig-height: 7
+
+rural_status_plot <- health_data_with_rural %>%
+  ggplot(
+    aes(
+      x = rural_status,
+      y = rate_per_100k,
+      fill = rural_status
+    )
+  ) +
+  geom_boxplot(
+    alpha = 0.8,
+    outlier.color = "#D35FB7"
+    ) +
+  coord_cartesian(ylim = c(0, 2000)) + 
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Cases per 100,000 by Rural Status",
+    subtitle = "Comparison between rural and urban counties (constructed)",
+    x = "Rural status",
+    y = "Cases per 100,000",
+    fill = "Rural status",
+    caption = "Demonstration of a boxplot comparing the distribution of rates between rural and urban counties."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold")
+  )
+
+rural_status_plot
+
+# The outlier.color argument shows extreme values using a distinct color (#D35FB7), making it easier for viewers to notice high rates that are unusual without altering the boxplot’s design.
+
+# coord_cartesian(ylim = c(0, 2000)) keeps all data points, including outliers, but narrows the visible y-axis range so the main distribution is easier to interpret. What this does is that it avoids distorting the data while preventing a single extreme value from stretching the entire plot and hiding differences that are crucial. 
+
+```
+
+```{r}
+#| label: save-regional-line-graph
+# #| eval: false
+
+# Saving figure (regional line graph) to the figures folder
+
+ggsave(
+  filename = here::here("figures", "lab_03_regional_line_graph.png"),
+  plot = regional_line_plot,
+  width = 10,
+  height = 7,
+  dpi = 300
+)
+
+```
+
+```{r}
+#| label: save-ranked-2024-plot
+# #| eval: false
+
+# Saving ranked 2024 county plot
+ggsave(
+  filename = here::here("figures", "lab_03_ranked_2024_counties.png"),
+  plot = ranked_2024_plot,
+  width = 9,
+  height = 7,
+  dpi = 300
+)
+
+```
+
+```{r}
+#| label: save-rural-status-plot
+# #| eval: false
+
+# Saving rural-status comparison plot
+ggsave(
+  filename = here::here("figures", "lab_03_rural_status_comparison.png"),
+  plot = rural_status_plot,
+  width = 9,
+  height = 7,
+  dpi = 300
+)
+
+```
+
+
+# Reflection
+
+Explain why long format was useful, what causes row multiplication during joins, and why rates are preferable to counts.
+
+**Response:**
+
+The long format (in `health_data_long`) was useful because it put each country and each year on its own line. This made it easy to see the population and number of cases for every place and every year. What this does with this setup is that it became simple to calculate `rate_per_100k` and to make grouped charts in ggplot. Sometimes extra rows show up when the joining column, like the county name, shows up more than once in one of the tables. When that happens, one row in `health_data_rates` can match several rows in the other table. Checking `duplicate_counties` and `rural_duplicates` helps stop this from occurring. Furthermore, rates like `rate_per_100k` are better than raw counts. The reason for this is they take the size of each county into account, making the numbers what one would call fair to compare across various counties and various years. 
+
