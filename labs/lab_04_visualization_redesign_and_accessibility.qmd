@@ -1,0 +1,321 @@
+---
+title: "Lab 4: Visualization Redesign and Accessibility"
+subtitle: "Derived from Chapter 4 by Dr. Anny Rodriguez, PhD, MPH"
+author: "Oluwadamilare 'Damilare' Adekunle" 
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    code-tools: true
+execute:
+  eval: true
+  warning: false
+  message: false
+editor: visual 
+---
+
+# Learning Objectives
+
+One will critique, redesign, and test a visualization for accessibility.
+
+# Setup
+
+Load `tidyverse` and `gapminder`.
+
+```{r}
+#| label: setup-packages
+#| echo: false
+
+# Load core packages for data wrangling and visualization
+library(tidyverse)   # ggplot2 and data manipulation
+library(gapminder)   # Gapminder dataset used in the lab
+library(here)        # Reproducible file paths from project root
+
+# Use 2007 data and rename variables for clarity
+gapminder_2007 <- gapminder %>%
+  rename(
+    life_expectancy = lifeExp,
+    population = pop,
+    gdp_per_capita = gdpPercap
+  ) %>%
+  filter(year == 2007)
+```
+
+
+# Part 1: Poor Graph
+
+Using 2007 Gapminder data, create a graph with at least five intentional weaknesses.
+
+```{r}
+#| label: poor-graph
+#| echo: false
+
+# A deliberate poor visualization with multiple design and accessibility problems.
+poor_graph <- gapminder_2007 %>%
+  ggplot(
+    aes(
+      x = population,              # Raw population (not on log scale)
+      y = life_expectancy,
+      color = continent,
+      size = gdp_per_capita        # Misused size aesthetic
+    )
+  ) +
+  geom_point(alpha = 1) +          # Opaque points increase overplotting
+  geom_smooth(
+    method = "lm",
+    se = TRUE,
+    color = "red"                  # Red line on multicolor background (poor contrast)
+  ) +
+  scale_x_continuous(              # No transformation despite skewed population
+    breaks = c(1e6, 5e7, 1e8, 5e8)
+  ) +
+  labs(
+    title = "Graph",
+    subtitle = "Stuff about countries",
+    x = "X Axis",
+    y = "Y Axis",
+    color = "Legend",
+    size = "GDP"
+  ) +
+  theme_gray(base_size = 8) +      # Small font size, gray theme (default)
+  theme(
+    panel.grid.major = element_line(color = "black"),  # Heavy grid lines
+    panel.grid.minor = element_line(color = "black"),
+    legend.position = "top"
+  )
+
+poor_graph
+```
+
+# Part 2: Critique
+
+Identify five problems and explain their effects.
+
+**Response:**
+
+1. The x-axis uses raw `population` values without a log scale, which makes most countries appear compressed and hides significant differences among smaller populations.
+
+2. The title “Graph” and vague axis labels (“X Axis”, “Y Axis”) fail to communicate the public health question, forcing viewers or readers to guess what the figure is about.
+
+3. The use of `gdp_per_capita` as a `size` aesthetic adds unnecessary complexity and makes it difficult to interpret the relationship between population and `life_expectancy`.
+
+4. The multicolor points combined with a red trend line, heavy black grid lines, and grey background create cluttered layout and poor contrast, making the main pattern harder to see.
+
+5. The small base font size and crowded legend at the top reduce readability, especially for audiences with visual impairments or when the figure is embedded in a report or slide.
+
+
+# Part 3: Redesign
+
+Create an improved graph with a finding-focused title, meaningful order, accessible design, clear labels, reduced clutter, alt text, and source.
+
+```{r}
+#| label: redesigned-graph
+#| fig-cap: "Population size and life expectancy across countries in 2007."
+#| fig-alt: "Scatterplot showing a modest positive relationship between log-transformed population size and life expectancy across countries, with points colored by continent."
+#| fig-width: 9
+#| fig-height: 7
+#| echo: false
+
+# This redesigned visualization focuses on a easy-to-tell finding and uses accessible design choices.
+redesigned_graph <- gapminder_2007 %>%
+  ggplot(
+    aes(
+      x = population,
+      y = life_expectancy,
+      color = continent
+    )
+  ) +
+  geom_point(
+    size = 3,
+    alpha = 0.8
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    color = "midnightblue",
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  scale_x_log10(
+    labels = scales::comma_format(),
+    name = "Population size (log scale)"
+  ) +
+  scale_color_brewer(
+    palette = "Set2"   # Colorblind-friendly qualitative palette
+  ) +
+  labs(
+    title = "Population Size and Life Expectancy Across Countries (2007)",
+    subtitle = "Countries with larger populations tend to have slightly higher life expectancy, though the relationship is modest.",
+    y = "Life expectancy (years)",
+    color = "Continent",
+    caption = "Improved graph about opulation size and life expectancy across countries in 2007. Not for real-life purpose."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold")
+  )
+
+redesigned_graph
+```
+
+```{r}
+#| label: save-redesigned-graph
+#| echo: false
+
+# This saves the redesigned visualization as a PNG in the 'figures/' folder.
+ggsave(
+  filename = here::here(
+    "figures", "lab04_population_life_expectancy_redesigned.png"
+  ),
+  plot = redesigned_graph,
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+```
+
+
+# Part 4: Highlighting
+
+Create a graph that highlights one continent and mutes the others.
+
+```{r}
+#| label: highlight-version
+#| fig-cap: "Highlighting Africa in the relationship between population size and life expectancy."
+#| fig-alt: "Scatterplot showing countries in Africa highlighted against muted points from other continents, illustrating the relationship between population size and life expectancy."
+#| fig-width: 9
+#| fig-height: 7
+#| echo: false
+
+# This version highlights Africa while muting other continents to focus attention on one group.
+gapminder_highlight <- gapminder_2007 %>%
+  mutate(
+    highlight_group = if_else(
+      continent == "Africa",
+      "Africa",
+      "Other continents"
+    )
+  )
+
+highlight_plot <- gapminder_highlight %>%
+  ggplot(
+    aes(
+      x = population,
+      y = life_expectancy
+    )
+  ) +
+  geom_point(
+    aes(
+      color = highlight_group
+    ),
+    size = 3,
+    alpha = 0.8
+  ) +
+  geom_smooth(
+    data = gapminder_highlight %>% filter(highlight_group == "Africa"),
+    aes(
+      x = population,
+      y = life_expectancy
+    ),
+    method = "lm",
+    se = FALSE,
+    color = "midnightblue",
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  scale_x_log10(
+    labels = scales::comma_format(),
+    name = "Population size (log scale)"
+  ) +
+  scale_color_manual(
+    values = c(
+      "Africa" = "#007E5C",          # Okabe–Ito bluish green (darker shades) (colorblind-safe)
+      "Other continents" = "gray70"  # Muted gray for context
+    )
+  ) +
+  labs(
+    title = "Life Expectancy and Population Size, Highlighting Africa (2007)",
+    subtitle = "Africa is highlighted in bluish green, with other continents shown in muted gray for context.",
+    y = "Life expectancy (years)",
+    color = "Group",
+    caption = "A graph illustrating Africa while muting other continents to focus attention on one group."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold")
+  )
+
+highlight_plot
+``` 
+
+```{r}
+#| label: save-highlight-plot
+#| echo: false
+
+# This saves the highlight visualization as a PNG in the 'figures/' folder.
+ggsave(
+  filename = here::here(
+    "figures", "lab04_population_life_expectancy_highlight_africa.png"
+  ),
+  plot = highlight_plot,
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+```
+
+# Part 5: Accessibility Review
+
+Evaluate color dependence, contrast, font size, legend use, grayscale readability, and alt text.
+
+**Response:**
+
+1. **Color dependence:** The redesigned graph uses a colorblind-friendly palette (`Set2`) and, in the highlight version, combines color with grouping labels (“Africa” vs. “Other continents”), so interpretation does not rely on color alone.
+
+2. **Contrast:** Points and the midnight blue trend line are plotted against a white background with minimal grid lines, providing strong contrast and making the main pattern discernible even for viewers with not so great sight.
+
+3. **Font size:** The base font size of 12 and bold title improve readability, particularly when the figure is embedded in an HTML report or presentation. 
+
+4. **Legend use:** Legends are placed at the bottom near the data, with simple labels (“Continent” and “Group”), reducing distracting elements and avoiding the need to repeatedly look back and forth.
+
+5. **Grayscale readability:** Because the highlight version uses a strong darker bluish green for Africa and gray for other continents, the figure remains interpretable in grayscale-Africa appears darker than the muted context points.
+
+6. **Alt text:** The alt text describes the chart type, variables, and underlying trend (which looks to be leaning toward a weak to moderate negative relationship between life expectancy and population). This makes the visualization accessible to viewers or screen reader users.
+
+
+# Part 6: Published Graphic Critique
+
+Critique an instructor-approved public health graphic for purpose, data, chart choice, accessibility, uncertainty, and ethics.
+
+```{r}
+#| label: published-graphic
+#| echo: false
+#| fig-cap: "Published public health graphic used for critique."
+#| fig-alt: "Infographic showing demographic characteristics of public health employees."
+#| fig-width: 10
+#| fig-height: 12
+
+knitr::include_graphics(
+  here::here("figures", "lab04_public_health_graph_example_for_critique.png")
+)
+
+# include_graphics() helps with embedding (external) images
+
+# Remember that “lab04_public_health_graph_example_for_critique.png” will be replaced with the file name used to when saving the image selected for critiquing. 
+```
+
+
+**Response:**
+
+&nbsp;&nbsp;&nbsp; The published graphic illustrates demographic characteristics of public health employees. The visualization combines multiple chart types, yet several design issues reduce how effectively the graphic communicates its intended message.
+
+&nbsp;&nbsp;&nbsp; First, although the layout appears simple with limited colors (i.e., only two), the arrangement of panels is crowded. The proximity of charts and icons increases how much attention is required from viewers, forcing them to scan back and forth to interpret and understand relationships. Next, all the charts lack titles and axis labels, making it difficult to identify what each panel represents. For example, the bar chart showing age distribution omits axis units, and the pie chart lacks a legend clarifying category percentages. Alt text also seems absent, which limits accessibility for screen‑reader users.
+
+&nbsp;&nbsp;&nbsp; Then, the mixture of pie charts, bar charts, and icon arrays may appear visually diverse but risks confusing viewers. Each chart type answers slightly different questions (counts versus proportions), without explicit transitions or explanations. Hence, consolidating similar data into one format would improve coherence. In addition, the graphic does not display uncertainty measures such as confidence intervals or sample sizes. Without these, small differences between demographic groups may be overinterpreted as substantive.
+
+&nbsp;&nbsp;&nbsp; Ultimately, the visualization could better address ethical and equity considerations. It presents demographic data without contextualizing structural factors that shape workforce composition. Also, by including a short note on recruitment or representation disparities, this would prevent misinterpretation and provide support for ethical communication. So, the graph may look simple and informational because it succeeds in presenting multiple demographic dimensions but falls short in being user-friendly, explanatory, and coherent. 
+
+Note: Graph critiqued was derived from https://fity.club/lists/suggestions/Public-Health-Graphs/
