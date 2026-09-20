@@ -1,0 +1,49 @@
+---
+title: "Skills"
+---
+
+## Research and Analytical Skills {.section-header .section-header-purple}
+
+- Survey design (bias reduction and question development)
+- Qualitative analysis (coding and thematic analysis)
+- Quantitative analysis (descriptive statistics and basic modeling)
+- Literature review methods (systematic searching and synthesis)
+
+## Visualization and Reporting {.section-header-one .section-header-yellow}
+
+- Power BI
+- RStudio
+- ggplot2
+- Quarto
+
+## Programming and Developmental Tools {.section-header-two .section-header-dark-blue}
+
+- Visual Studio Code
+- Eclipse IDE for Java Developers
+- Git and GitHub
+
+## Data Analysis Tools {.section-header-three .section-header-turquoise}
+
+- SAS
+- SPSS
+- SQL
+
+## Technical Operations and Systems {.section-header-four .section-header-wine}
+
+- Microsoft Office Suite (Word, PowerPoint, Access, Excel)
+- Basic networking (introductory Cisco device setup and troubleshooting)
+- System troubleshooting (diagnosing common software or hardware issues)
+
+## Organizational and Administrative Process {.section-header-five .section-header-plum}
+
+- Task tracking and follow-up systems
+- Calendar coordination and scheduling
+- Document organizations and categorizations
+- Meeting preparation and agenda development
+
+## Information and Document Management {.section-header .section-header-purple}
+
+- Structured folder hierarchies
+- Naming conventions
+- Organized digital archives
+- Document versioning and update tracking

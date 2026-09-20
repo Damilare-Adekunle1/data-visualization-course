@@ -1,0 +1,11 @@
+---
+title: "Curriculum Vitae"
+---
+
+Below is my full CV. 
+
+<embed src="files/curriculum-vitae.pdf" type="application/pdf" width="100%" height="900px" /> 
+
+If your browser blocks the PDF or you are unable to see it, you may also download my current [curriculum vitae.](files/curriculum-vitae.pdf)
+
+Thank you!

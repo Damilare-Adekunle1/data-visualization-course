@@ -1,0 +1,280 @@
+/* css styles */
+
+:root {
+  --font-family-sans-serif: "Trebuchet MS", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+
+  --body-bg: #0A1A2F;        /* Midnight blue */
+  --body-color: #FFFFFF;     /* White text */
+
+  --link-color: #40E0D0;     /* Turquoise */
+  --navbar-bg: #DF73FF; /* Plum (traditional) */ 
+  --navbar-fg: #FFFFFF;
+  --navbar-hl: #F5F5DC;      /* Cream */
+  --headings-color: #40E0D0; /* Turquoise */
+}
+
+.welcome-banner {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.welcome-video {
+  width: 100%;
+  height: auto;
+}
+
+.video-container {
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.full-video {
+  width: 100%;
+  max-width: 900px; /* adjust if you want it larger or smaller */
+  border-radius: 40px;
+}
+
+
+/* Background and text */
+body {
+  font-family: "Lato", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  background-color: #0A1A2F; /* Midnight blue */
+  color: #FFFFFF; /* White text */
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Lato", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 600;   /* refined but strong */
+  letter-spacing: 0.5px;
+  color: #40E0D0;
+}
+
+/* Links */
+a {
+  color: #40E0D0;
+  font-weight: 500;
+}
+
+a:hover {
+  color: #B0E0E6; /* Soft turquoise */
+  text-decoration: underline;
+}
+
+/* Subtitle */
+.subtitle {
+  display: block;
+  font-size: 1.2rem;
+  color: #40E0D0;
+  font-style: italic;
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Color-Coded Section Headers */
+
+.section-header {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 1.4rem;
+  border-radius: 6px;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Purple header */
+.section-header-purple {
+  background-color: #36013F; /* dark purple */
+  color: #F5F5DC;           /* cream */
+}
+
+.section-header-one {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 1.4rem;
+  border-radius: 6px;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Yellow header */
+.section-header-yellow {
+  background-color: #E9F50A; /* yellow */
+  color: #4A2A03;            /* brown text */
+}
+
+.section-header-two {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 1.4rem;
+  border-radius: 6px;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Dark blue header */
+.section-header-dark-blue {
+  background-color: #000080; /* dark blue */
+  color: #FFFFFF;            /* white text */
+}
+
+.section-header-three {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 1.4rem;
+  border-radius: 6px;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Turquoise header */
+.section-header-turquoise {
+  background-color: #40E0D0; /* turquoise */
+  color: #000000;            /* black text */
+}
+
+.section-header-four {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 1.4rem;
+  border-radius: 6px;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Wine header */
+.section-header-wine {
+  background-color: #4A0323; /* nearly wine */
+  color: #FFFFFF;            /* white */
+}
+
+.section-header-five {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 1.4rem;
+  border-radius: 6px;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Plum header */
+.section-header-plum {
+  background-color: #DF73FF; /* plum */
+  color: #000000;            /* black */
+}
+
+
+/* Navbar */
+.navbar {
+  background-color: #DF73FF !important; /* Plum (traditional) */
+}
+
+.navbar .nav-link.active {
+  color: #F5F5DC !important; /* Cream */
+  font-weight: bold;
+}
+
+.navbar-title, .navbar-nav a {
+  font-family: "Lato", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 500;
+}
+
+/* Sidebar background and outline */
+.sidebar nav#toc {
+  background-color: #000080; /* midnight blue */
+  color: #F5F5DC;
+  border: 2px solid #DF73FF; /* Plum (traditional) */
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.sidebar nav#toc .toc-title {
+  color: #40E0D0;        /* turquoise */
+  font-weight: 600;
+  font-size: 1.1rem
+  margin-bottom: 0.75rem;
+}
+
+.sidebar nav#toc a {
+  color: #F5F5DC;        /* cream */
+}
+
+.sidebar nav#toc a:hover {
+  color: #DF73FF;        /* plum */
+}
+
+/* Left-align markdown images inside page content (General image alignment) */
+.quarto-content img { c
+  display: block;
+  margin-left: -2rem;  /* shift almost extremely left */
+  margin-right: auto;
+  max-width: 90%; /* one may try none, 100% or lesser % */
+}
+
+/* Float image left with text wrapping (specific styling for index headshot image) */
+.float-headshot {
+  float: left;
+  margin: 0 1rem 1rem 0;
+}
+
+/* For the IT Specialist badge */
+.left-badge {
+  display: block;
+  margin-left: -1rem;
+  margin-right: auto;
+  max-width: 20%;
+}
+
+/* Text utilities */
+.text-bold {
+  font-weight: bold;
+  color: #F5F5DC; /* Cream */
+}
+
+.text-underline {
+  text-decoration: underline;
+  text-decoration-color: #40E0D0;
+}
+
+.text-italic {
+  font-style: italic;
+  color: #40E0D0;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: #40E0D0;
+  border: none;
+  color: #000000;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background-color: #B0E0E6;
+  color: #000000;
+}
+
+/* Blockquotes */
+blockquote {
+  border-left: 5px solid #F5F5DC; /* Cream */
+  background-color: #111827; /* Very dark blue */
+  padding: 1rem;
+  font-style: italic;
+  color: #E5E5E5;
+}
+
+/* Callout boxes */
+.callout {
+  border-left: 5px solid #40E0D0; /* Turquoise */
+  background-color: #111827;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+

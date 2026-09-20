@@ -1,0 +1,20 @@
+---
+title: "Contact"
+toc: false
+image: images/ContactHeadshot.png
+image-alt: "Professional Headshot for Contact Page" 
+---
+
+![](images/ContactHeadshot.png){.float-headshot}
+
+For professional inquiries, contact me at:
+
+**Email:** Adamilare1011@gmail.com 
+
+**School Email:** Oladekunle@msm.edu
+
+You may also find me on
+
+- [GitHub](https://github.com/Damilare-Adekunle1)
+
+- [LinkedIn](https://www.linkedin.com/in/oluwadamilare-a-41396b286)

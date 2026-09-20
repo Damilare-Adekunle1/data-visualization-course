@@ -1,0 +1,35 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Oluwadamilare 'Damilare' Adekunle"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: about.qmd
+        text: About
+      - href: education.qmd
+        text: Education
+      - href: experience.qmd
+        text: Experience
+      - href: skills.qmd
+        text: Skills
+      - href: projects.qmd
+        text: Projects
+      - href: presentations.qmd
+        text: Presentations
+      - href: cv.qmd
+        text: CV
+      - href: contact.qmd
+        text: Contact
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+editor: visual
+

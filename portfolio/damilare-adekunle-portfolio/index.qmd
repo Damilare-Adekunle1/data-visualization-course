@@ -1,0 +1,35 @@
+---
+title: "Oluwadamilare 'Damilare' Adekunle"
+subtitle: "GEPH SGA Secretary ('26 – '27) | Graduate Student | Master of Public Health Program"
+image: images/Headshot.jpg
+image-alt: "Professional Headshot"
+---
+
+
+<div class="welcome-banner">
+<video autoplay muted loop playsinline class="welcome-video">
+  <source src="files/welcome.mp4" type="video/mp4">
+</video>
+</div>
+
+
+![](images/Headshot.jpg){.float-headshot}
+
+Hi, my name is Damilare Adekunle, a second‑year MPH student who is passionate about strengthening community health systems, specifically by contributing to solutions that support prevention generally, whether it pertains to reducing access to lethal means, understanding disparities that exacerbate debilitating health conditions, or providing mental-health-related resources to community members and key partners.
+
+## About Me and My Work
+
+- By visiting my [About](about.qmd) page
+
+- By viewing my [Projects](projects.qmd) and [Presentations](presentations.qmd)
+
+- By downloading my [CV](cv.qmd)
+
+## Connect With Me
+
+- [GitHub](https://github.com/Damilare-Adekunle1)
+
+- [LinkedIn](https://www.linkedin.com/in/oluwadamilare-a-41396b286)
+
+![IT Specialist Networking](images/IT-Specialist-Networking-Badge.png){.left-badge}
+
